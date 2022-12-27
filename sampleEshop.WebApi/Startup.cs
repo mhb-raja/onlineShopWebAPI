@@ -62,6 +62,7 @@ namespace sampleEshop.WebApi
             //services.AddScoped<IViewRenderService, RenderViewToString>();
             services.AddScoped<IOrderService, OrderService>();
             //services.AddScoped<IAccessService, AccessService>();
+            
 
             #endregion
 

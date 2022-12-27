@@ -12,6 +12,8 @@ namespace Core.DTOs.Product
         public string Text { get; set; }
         public int StartPrice { get; set; }
         public int EndPrice { get; set; }
+        public int MaxPrice { get; set; }
+        public bool AvailableOnly { get; set; }
         public List<long> Categories { get; set; }
         public ProductOrderBy? OrderBy { get; set; }
     }

@@ -13,7 +13,7 @@ namespace sampleEshop.WebApi.Utilities
         NotFound = 3,
         UnAuthorized = 4,
         AccessDenied = 5,
-        //SomethingWrong = 6
+        UnAuthenticated = 6
     }
     public static class JsonResponseStatus
     {
@@ -71,13 +71,23 @@ namespace sampleEshop.WebApi.Utilities
         }
 
         //****************************************
+        public static JsonResult UnAuthenticated()
+        {
+            return new JsonResult(new { eStatus = Status.UnAuthenticated, message= "کاربری با مشخصات وارد شده پیدا نشد" });
+        }
+        public static JsonResult UnAuthenticated(string message)
+        {
+            return new JsonResult(new { message = message, eStatus = Status.UnAuthenticated });
+        }
+
+        //****************************************
         public static JsonResult UnAuthorized()
         {
-            return new JsonResult(new { status = "UnAuthorized", eStatus = Status.UnAuthorized });
+            return new JsonResult(new { eStatus = Status.UnAuthorized , message= "شما به این بخش دسترسی ندارید" });
         }
-        public static JsonResult UnAuthorized(object returnData)
+        public static JsonResult UnAuthorized(string message)
         {
-            return new JsonResult(new { data = returnData, eStatus = Status.UnAuthorized });
+            return new JsonResult(new { message = message, eStatus = Status.UnAuthorized });
         }
 
         //****************************************

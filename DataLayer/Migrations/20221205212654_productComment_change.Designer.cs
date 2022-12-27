@@ -4,14 +4,16 @@ using DataLayer.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(SampleDbContext))]
-    partial class SampleDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221205212654_productComment_change")]
+    partial class productComment_change
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -314,22 +316,13 @@ namespace DataLayer.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("DislikeCount")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
-
-                    b.Property<int>("LikeCount")
-                        .HasColumnType("int");
-
-                    b.Property<long?>("ParentId")
-                        .HasColumnType("bigint");
 
                     b.Property<long>("ProductId")
                         .HasColumnType("bigint");
 
-                    b.Property<bool>("SeenByAdmin")
+                    b.Property<bool>("Seen")
                         .HasColumnType("bit");
 
                     b.Property<string>("Text")
@@ -344,8 +337,6 @@ namespace DataLayer.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ParentId");
 
                     b.HasIndex("ProductId");
 
@@ -563,10 +554,6 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("DataLayer.Entities.Product.ProductComment", b =>
                 {
-                    b.HasOne("DataLayer.Entities.Product.ProductComment", "ParentComment")
-                        .WithMany()
-                        .HasForeignKey("ParentId");
-
                     b.HasOne("DataLayer.Entities.Product.Product", "Product")
                         .WithMany("ProductComments")
                         .HasForeignKey("ProductId")
@@ -578,8 +565,6 @@ namespace DataLayer.Migrations
                         .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("ParentComment");
 
                     b.Navigation("Product");
 

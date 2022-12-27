@@ -23,6 +23,7 @@ namespace Core.Services.Interfaces
         void ActivateUser(User user);
         Task<User> GetUserByEmailActiveCode(string emailActiveCode);
         Task EditUserInfo(UserDTO user, long userId);
-        //Task<bool> IsUserAdmin(long userId);
+        Task<bool> IsUserAdmin(long userId);
+        
     }
 }

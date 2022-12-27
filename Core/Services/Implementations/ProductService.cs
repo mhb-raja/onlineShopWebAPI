@@ -216,7 +216,7 @@ namespace Core.Services.Implementations
             };
             newProduct.ImageName = ImageUploaderExtension.
                 SaveBase64ImageToServer(p.Base64Image, PathTools.ProductImageServerPath);
-            
+
             //if (!string.IsNullOrEmpty(p.Base64Image))
             //{
             //    var imageFile = ImageUploaderExtension.Base64ToImage(p.Base64Image);
@@ -229,9 +229,22 @@ namespace Core.Services.Implementations
             p.Id = newProduct.Id;
             return p;
         }
+
         public async Task<ProductDatasource> FilterProducts(ProductDatasource filter)
         {
             var productQuery = productRepository.GetEntitiesQuery().AsQueryable().Where(p => !p.IsDelete);
+            filter.MaxPrice = productQuery.Max(p => p.Price);
+            if (filter.AvailableOnly)
+                productQuery = productQuery.Where(p => p.IsAvailable);
+
+            if (filter.StartPrice > 0)
+                productQuery = productQuery.Where(s => s.Price >= filter.StartPrice);
+
+            if (filter.EndPrice == 0)
+                filter.EndPrice = filter.MaxPrice;
+            else if (filter.EndPrice != filter.MaxPrice)
+                productQuery = productQuery.Where(s => s.Price <= filter.EndPrice);
+
             switch (filter.OrderBy)
             {
                 case ProductOrderBy.PriceAsc:
@@ -275,12 +288,7 @@ namespace Core.Services.Implementations
 
             if (filter.Categories != null && filter.Categories.Any())
                 productQuery = productQuery.Where(p => filter.Categories.Contains(p.CategoryId));
-
-            if (filter.StartPrice > 0)
-                productQuery = productQuery.Where(s => s.Price >= filter.StartPrice);
-
-            if (filter.EndPrice > 0)
-                productQuery = productQuery.Where(s => s.Price <= filter.EndPrice);
+                                   
 
             filter.TotalItems = productQuery.Count();
 
@@ -404,15 +412,27 @@ namespace Core.Services.Implementations
             return await productRepository.GetEntitiesQuery()
                 .SingleOrDefaultAsync(s => s.Id == productId && !s.IsDelete && s.IsAvailable);
         }
+
+        public async Task DeleteProduct(long id)
+        {
+            await productRepository.RemoveEntity(id);
+            await productRepository.SaveChanges();
+        }
+
+
         #endregion
 
 
 
         #region product gallery
 
+        public async Task<int> UnreadCommentsCount()
+        {
+            return await productCommentRepository.GetEntitiesQuery().CountAsync(p => !p.IsDelete && !p.SeenByAdmin);
+        }
         public async Task<List<ProductGalleryMiniDTO>> GetProductActiveGalleries(long productId)
         {
-            if ( !await ProductExists(productId))
+            if (!await ProductExists(productId))
                 return null;
             return await productGalleryRepository.GetEntitiesQuery()
                 .Where(s => s.ProductId == productId && !s.IsDelete)
@@ -468,7 +488,10 @@ namespace Core.Services.Implementations
             {
                 ProductId = comment.ProductId,
                 Text = comment.Text.SanitizeText(),
-                UserID = userId
+                UserID = userId,
+                Approved = false,
+                SeenByAdmin = false,
+                ParentId = comment.ParentId
             };
             await productCommentRepository.AddEntity(pc);
             await productCommentRepository.SaveChanges();
@@ -481,7 +504,7 @@ namespace Core.Services.Implementations
                 return null;
             return await productCommentRepository.GetEntitiesQuery()
                 .Include(z => z.User)
-                .Where(c => c.ProductId == productId && !c.IsDelete)
+                .Where(c => c.ProductId == productId && c.Approved && !c.IsDelete)
                 .OrderByDescending(s => s.CreatedAt)
                 .Select(s => new ProductCommentDTO
                 {
@@ -489,10 +512,84 @@ namespace Core.Services.Implementations
                     Text = s.Text,
                     UserId = s.UserID,
                     UserFullName = $"{s.User.Firstname} {s.User.Lastname}",
-                    Date = s.CreatedAt.ToString("yyyy/MM/dd HH:mm")
+                    Date = s.CreatedAt,
+                    ParentId = s.ParentId.Value,
+                    LikeCount = s.LikeCount,
+                    DislikeCount = s.DislikeCount
                 }).ToListAsync();
         }
 
+
+        public async Task<ProductCommentDatasource> FilterProductComments(ProductCommentDatasource filter)
+        {
+            var query = productCommentRepository.GetEntitiesQuery().AsQueryable().Where(p => !p.IsDelete);
+
+
+            if (!string.IsNullOrEmpty(filter.Text))
+                query = query.Where(s => s.Text.Contains(filter.Text));
+
+            if (filter.ProductId != null && filter.ProductId > 0)
+                query = query.Where(s => s.ProductId == filter.ProductId);
+
+            filter.TotalItems = query.Count();
+
+            try
+            {
+                var comments = await query
+                .OrderByDescending(p => p.CreatedAt)
+                .Paging(filter.PageIndex, filter.PageSize)
+                .Include(p=>p.Product).Include(p=>p.User)//.Include(p=>p.ParentComment)
+                .Select(p => new ProductCommentForAdminDTO
+                {
+                    Id = p.Id,
+                    ProductName = p.Product.Name,
+                    ProductImage = p.Product.ImageName,
+                    ProductId = p.ProductId,
+                    Text = p.Text,
+                    Approved = p.Approved,
+                    Date = p.CreatedAt,
+                    SeenByAdmin = p.SeenByAdmin,
+                    UserFullName = $"{p.User.Firstname} {p.User.Lastname}",
+                    UserId = p.UserID,
+
+                    DislikeCount = p.DislikeCount,
+                    LikeCount = p.LikeCount,
+                    //ParentId = p.ParentId.Value
+                })
+                .ToListAsync();
+
+                filter.SetItems(comments);
+                return filter;
+            }
+            catch (Exception e)
+            {
+
+                throw;
+            }
+            
+
+            //return await productCommentRepository.GetEntitiesQuery()
+            //    .Include(z => z.Product)
+            //    .Where(p => !p.IsDelete)
+            //    .GroupBy(s => s.ProductId)
+            //    .OrderByDescending
+            //    .Select(p => new ProductCommentForAdminDTO
+            //    {
+
+            //    })
+            //    .ToListAsync();
+        }
+        /*
+         var query = context.People
+                   .GroupBy(p => p.name)
+                   .Select(g => new { name = g.Key, count = g.Count() });
+         */
+
+        public async Task DeleteProductComment(long id)
+        {
+            await productCommentRepository.RemoveEntity(id);
+            await productCommentRepository.SaveChanges();
+        }
         #endregion
 
 
@@ -507,6 +604,7 @@ namespace Core.Services.Implementations
             //this.sizeGroupRepository?.Dispose();
             //this.sizeRepository?.Dispose();
         }
+
         #endregion
     }
 }

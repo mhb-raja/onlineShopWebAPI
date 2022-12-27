@@ -20,6 +20,8 @@ namespace Core.Services.Interfaces
 
         Task<bool> ProductExists(long productId);
         Task<Product> GetProductForUserOrder(long productId);
+
+        Task DeleteProduct(long id);
         #endregion
 
 
@@ -47,9 +49,12 @@ namespace Core.Services.Interfaces
 
         #region product comments
 
+        Task<int> UnreadCommentsCount();
+
         Task AddCommentToProduct(ProductCommentMiniDTO productComment, long userId);
         Task<List<ProductCommentDTO>> GetActiveProductComments(long productId);
-
+        Task<ProductCommentDatasource> FilterProductComments(ProductCommentDatasource filter);
+        Task DeleteProductComment(long id);
         #endregion
 
     }

@@ -79,6 +79,20 @@ namespace sampleEshop.WebApi.Controllers
 
         #endregion
 
+        #region delete product
+
+        [HttpGet("delete-product/{id}")]
+        public async Task<IActionResult> DeleteProduct(long id)
+        {
+            if (ModelState.IsValid)
+            {
+                await productService.DeleteProduct(id);
+                return JsonResponseStatus.Success();
+            }
+            return JsonResponseStatus.Error();
+        }
+        #endregion
+
         #endregion
 
 
@@ -211,7 +225,45 @@ namespace sampleEshop.WebApi.Controllers
             }
             return JsonResponseStatus.Error();
         }
+
         #endregion
+        #endregion
+
+        #region comment
+
+        #region unread-count
+        [HttpGet("unread-comments-count")]
+        public async Task<IActionResult> GetUnreadCommentsCount()
+        {
+            var res = await productService.UnreadCommentsCount();
+            return JsonResponseStatus.Success(res);
+        }
+        #endregion
+
+        #region filter comments
+
+        [HttpGet("filter-comments")]
+        public async Task<IActionResult> FilterComments([FromQuery]ProductCommentDatasource filter)
+        {
+            var res = await productService.FilterProductComments(filter);
+            return JsonResponseStatus.Success(res);
+        }
+
+        #endregion
+
+        #region delete comment
+        [HttpGet("delete-comment/{id}")]
+        public async Task<IActionResult> DeleteComment(long id)
+        {
+            if (ModelState.IsValid)
+            {
+                await productService.DeleteProductComment(id);
+                return JsonResponseStatus.Success();
+            }
+            return JsonResponseStatus.Error();
+        }
+        #endregion
+
         #endregion
     }
 }

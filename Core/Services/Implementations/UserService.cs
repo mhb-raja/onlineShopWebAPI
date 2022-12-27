@@ -150,7 +150,7 @@ namespace Core.Services.Implementations
         {
             return await userRoleRepository.GetEntitiesQuery()
                     .Include(s => s.Role)
-                    .AnyAsync(s => s.UserId == userId && s.Role.Name == "Admin");
+                    .AnyAsync(s => s.UserId == userId && s.Role.Name == "Admin" && !s.IsDelete);
         }
         #endregion
     }

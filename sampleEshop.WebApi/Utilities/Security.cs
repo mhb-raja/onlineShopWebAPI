@@ -7,10 +7,10 @@ namespace sampleEshop.WebApi
 {
     public static class Security
     {
-        public static string secretKeyStr = "ProjectJwtBearer";
-        public static string issuer = "https://localhost:44300/";
+        public static string secretKeyStr = "ProjectJwtBearer";//!!!!!!!!!!!!!!!!!!!! must be unique
+        public static string issuer = "https://localhost:44300/"; //!!!!!!!!!!!!!!!!!!!!!!!!
 
-        public static string corsPolicyName = "EnableCors";
+        public static string corsPolicyName = "EnableCors"; //!!!!!!!!!!!!!!!!!!!!!!!!
 
         
     }

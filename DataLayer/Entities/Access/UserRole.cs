@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DataLayer.Entities.Access
 {
-    public class UserRole:BaseEntity
+    public class UserRole : BaseEntity
     {
         #region MyRegion
         public long UserId { get; set; }

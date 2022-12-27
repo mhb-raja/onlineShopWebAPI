@@ -10,6 +10,7 @@ namespace Core.DTOs.Product
     {
         public string Text { get; set; }
         public long ProductId { get; set; }
+        public long ParentId { get; set; }
     }
 
     public class ProductCommentDTO : ProductCommentMiniDTO
@@ -17,6 +18,24 @@ namespace Core.DTOs.Product
         public long Id { get; set; }
         public long UserId { get; set; }
         public string UserFullName { get; set; }
-        public string Date { get; set; }
+        public DateTime Date { get; set; }
+
+        public int LikeCount { get; set; }
+        public int DislikeCount { get; set; }
+        
+
+        //public string AdminReply { get; set; }
+        //public DateTime AdminReplyDate { get; set; }
     }
+
+    public class ProductCommentForAdminDTO : ProductCommentDTO
+    {
+        public bool Approved { get; set; }
+        public bool SeenByAdmin { get; set; }
+
+        public string ProductName { get; set; }
+        public string ProductImage { get; set; }
+    }
+
+
 }
